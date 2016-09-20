@@ -1,0 +1,27 @@
+{
+  "name": "libtcp",
+  "version": "0.1.0",
+  "description": "Arena9的TCP通讯协议库",
+  "main": "build/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "gulp tsc",
+    "watch": "gulp tsc:w",
+    "clean": "rm -rf build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@git.oschina.net:_yuguo_tianqing/libtcp.git"
+  },
+  "keywords": [
+    "TCP"
+  ],
+  "author": "chenyu <believe.chenyu@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "async": "^2.0.1",
+    "gulp": "^3.9.1",
+    "gulp-typescript": "^2.13.6",
+    "typescript": "^1.8.10"
+  }
+}

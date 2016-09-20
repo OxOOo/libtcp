@@ -1,0 +1,8 @@
+// tsconfig.json
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs"
+  }
+}
