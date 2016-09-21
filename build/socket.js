@@ -9,15 +9,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 const net = require("net");
-const events = require('events');
-const EventEmitter = events.EventEmitter;
+const events_1 = require('events');
 const I = require('./interfaces');
 const dprocess = require('./dprocess');
 const SH = require('./helpers/socket');
-class Socket extends EventEmitter {
-    constructor(_options, _socket = null, id = 0) {
+class Socket extends events_1.EventEmitter {
+    constructor(options, _socket = null, id = 0) {
         super();
-        this._options = _options;
+        this.options = options;
         this._socket = _socket;
         this.id = id;
         this.locals = {};
@@ -31,7 +30,13 @@ class Socket extends EventEmitter {
         if (_socket != null) {
             this.state = I.SocketState.connected;
         }
-        if (_options.compress === 'zlib') {
+        if (this.options.crypto) {
+            this.options.crypto.forEach((crypto) => {
+                var dp = new dprocess.CryptoDProcess(crypto.algorithm, crypto.secret_key);
+                this._dprocesses.push(dp);
+            });
+        }
+        if (options.compress === 'zlib') {
             this._dprocesses.push(new dprocess.ZlibDProcess());
         }
         this._socket.on('data', (chunk) => {
@@ -48,7 +53,12 @@ class Socket extends EventEmitter {
                 this._pending_data_chunks.unshift(this._received_data);
                 this._received_data = Buffer.concat(this._pending_data_chunks);
                 this._pending_data_chunks = [];
-                this._receive();
+                try {
+                    this._receive();
+                }
+                catch (err) {
+                    super.emit(err);
+                }
             }, Socket.DATA_DELAY);
         });
         this._socket.on('close', (had_error) => {
@@ -116,17 +126,21 @@ class Socket extends EventEmitter {
             var length_data = SH.buffer2Number(this._received_data);
             if (length_data == null || this._received_data.length < length_data.length + length_data.value)
                 return;
-            var data_package = SH.buffer2DataPackage(this._received_data, length_data.length);
-            this._received_data = this._received_data.slice(length_data.length + data_package.length);
+            var data_buffer = this._received_data.slice(length_data.length, length_data.length + length_data.value);
+            this._received_data = this._received_data.slice(length_data.length + length_data.value);
+            data_buffer = yield this._decode(data_buffer);
+            var data_package = SH.buffer2DataPackage(data_buffer);
             if (data_package.type == I.ReceivedDataType.send) {
                 _super("emit").call(this, data_package.event, data_package.arg);
                 _super("emit").call(this, Socket.ALL_DATA_MESSAGE, data_package.event, data_package.arg);
             }
-            else
+            else {
                 throw new Error('Unknow data');
+            }
             process.nextTick(() => {
                 this._receive();
             });
+            return;
         });
     }
 }

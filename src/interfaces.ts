@@ -2,7 +2,11 @@
 
 export interface Options
 {
-	compress?: string;
+	compress?: 'zlib';
+	crypto?: Array<{
+			algorithm: string; // 例aes-128-ecb,通过openssl list-cipher-algorithms可以查看支持的列表
+			secret_key: string;
+		}>
 }
 
 export interface DataPackage

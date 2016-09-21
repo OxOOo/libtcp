@@ -3,9 +3,11 @@
 export {
 	Server,
 	Client,
-	Socket
+	Socket,
+	I
 }
 
 import {Server} from './server';
 import {Client} from './client';
 import {Socket} from './socket';
+import I = require('./interfaces');

@@ -6,3 +6,5 @@ const client_1 = require('./client');
 exports.Client = client_1.Client;
 const socket_1 = require('./socket');
 exports.Socket = socket_1.Socket;
+const I = require('./interfaces');
+exports.I = I;

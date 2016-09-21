@@ -1,15 +1,14 @@
 /// <reference path="../typings/index.d.ts" />
 "use strict";
 const net = require("net");
-const events = require('events');
-const EventEmitter = events.EventEmitter;
+const events_1 = require('events');
 const socket_1 = require('./socket');
-class Server extends EventEmitter {
+class Server extends events_1.EventEmitter {
     constructor(options = {}) {
         super();
         this.options = options;
         this.sockets = [];
-        this.socketsEmitter = new EventEmitter();
+        this.socketsEmitter = new events_1.EventEmitter();
         this._server = net.createServer();
         this._sockets_id = 0;
         this._server.on('connection', (s) => {

@@ -1,28 +1,31 @@
-var assert = require('assert');
+/// <reference path="../typings/index.d.ts" />
 
-module.exports = function(options) {
-  var server_socket = options.server_socket;
-  var client = options.client;
+import {Server, Client, Socket, I} from '../src';
+import assert = require('assert');
+
+module.exports = function (options: any) {
+  var server_socket: Socket = options.server_socket;
+  var client: Client = options.client;
   var utility = require('utility');
 
-  return function(callback) {
+  return new Promise(function (resolve, reject) {
     console.log('Test Send Mix Object');
     var message = {
       message: '7887hj',
       count: 2,
-      obj: {abc: 1},
+      obj: { abc: 1 },
       buffer: require('./test_lib').getRandomBuffer(10),
       array: [1, 2, 3, require('./test_lib').getRandomBuffer(20)]
     };
 
     console.time('sendMixObject');
     console.log(message);
-    server_socket.on('sendMixObject', function(msg) {
+    server_socket.on('sendMixObject', function (msg: any) {
       console.log(msg);
       console.timeEnd('sendMixObject');
       assert(utility.md5(msg) === utility.md5(message));
-      callback();
+      resolve();
     });
     client.emit('sendMixObject', message);
-  }
+  });
 }
