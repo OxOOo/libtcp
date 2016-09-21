@@ -1,4 +1,3 @@
-/// <reference path="../../typings/index.d.ts" />
 "use strict";
 exports.isBuffer = Buffer.isBuffer;
 exports.isString = function (value) {

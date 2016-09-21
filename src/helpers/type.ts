@@ -1,4 +1,3 @@
-/// <reference path="../../typings/index.d.ts" />
 
 export var isBuffer = Buffer.isBuffer;
 

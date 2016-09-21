@@ -1,4 +1,4 @@
-/// <reference path="../typings/index.d.ts" />
+/// <reference path="../node_modules/@types/node/index.d.ts" />
 
 import net = require("net");
 import {EventEmitter} from 'events';
@@ -35,7 +35,7 @@ export class Server extends EventEmitter {
 		this._server.on('close', () => {
 			super.emit('close');
 		});
-		this._server.on('error', (error) => {
+		this._server.on('error', (error: any) => {
 			super.emit('error', error);
 		});
 		this._server.on('listening', () => {

@@ -1,4 +1,3 @@
-/// <reference path="../../typings/index.d.ts" />
 "use strict";
 const POW32 = Math.pow(2, 32);
 const ALLOW_LENGTH_LIST = [1, 2, 4, 8];

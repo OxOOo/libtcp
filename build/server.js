@@ -1,8 +1,8 @@
-/// <reference path="../typings/index.d.ts" />
+/// <reference path="../node_modules/@types/node/index.d.ts" />
 "use strict";
 const net = require("net");
-const events_1 = require('events');
-const socket_1 = require('./socket');
+const events_1 = require("events");
+const socket_1 = require("./socket");
 class Server extends events_1.EventEmitter {
     constructor(options = {}) {
         super();

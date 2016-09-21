@@ -1,4 +1,3 @@
-/// <reference path="../typings/index.d.ts" />
 export interface Options {
     compress?: 'zlib';
     crypto?: Array<{

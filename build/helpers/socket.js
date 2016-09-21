@@ -1,8 +1,7 @@
-/// <reference path="../../typings/index.d.ts" />
 "use strict";
-const B = require('./buffer');
-const T = require('./type');
-const I = require('../interfaces');
+const B = require("./buffer");
+const T = require("./type");
+const I = require("../interfaces");
 var TYPE;
 (function (TYPE) {
     TYPE[TYPE["JSON"] = 1] = "JSON";

@@ -1,4 +1,4 @@
-/// <reference path="../typings/index.d.ts" />
+/// <reference path="../node_modules/@types/node/index.d.ts" />
 export interface BaseDProcess {
     encode(buffer: Buffer): Promise<Buffer>;
     decode(buffer: Buffer): Promise<Buffer>;

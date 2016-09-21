@@ -1,4 +1,4 @@
-/// <reference path="../typings/index.d.ts" />
+/// <reference path="../node_modules/@types/node/index.d.ts" />
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -9,10 +9,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 const net = require("net");
-const events_1 = require('events');
-const I = require('./interfaces');
-const dprocess = require('./dprocess');
-const SH = require('./helpers/socket');
+const events_1 = require("events");
+const I = require("./interfaces");
+const dprocess = require("./dprocess");
+const SH = require("./helpers/socket");
 class Socket extends events_1.EventEmitter {
     constructor(options, _socket = null, id = 0) {
         super();
@@ -144,7 +144,7 @@ class Socket extends events_1.EventEmitter {
         });
     }
 }
+exports.Socket = Socket;
 Socket.DATA_DELAY = 50;
 Socket.ALL_DATA_MESSAGE = '___receive_data___';
 Socket._INDEX_MOD = Math.pow(2, 25);
-exports.Socket = Socket;

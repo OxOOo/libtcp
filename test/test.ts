@@ -1,4 +1,4 @@
-/// <reference path="../typings/index.d.ts" />
+/// <reference path="../node_modules/@types/node/index.d.ts" />
 
 require('./test_lib');
 import start_server_client = require('./start_server_client');

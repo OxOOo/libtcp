@@ -1,4 +1,4 @@
-/// <reference path="../typings/index.d.ts" />
+/// <reference path="../node_modules/@types/node/index.d.ts" />
 
 import net = require("net");
 import {EventEmitter} from 'events';
@@ -39,7 +39,7 @@ export class Socket extends EventEmitter {
 			this._dprocesses.push(new dprocess.ZlibDProcess());
 		}
 
-		this._socket.on('data', (chunk) => {
+		this._socket.on('data', (chunk: Buffer) => {
 			if (this._time_handle) clearTimeout(this._time_handle);
 			if (chunk instanceof String) {
 				this._pending_data_chunks.push(new Buffer(chunk));
@@ -60,7 +60,7 @@ export class Socket extends EventEmitter {
 			}, Socket.DATA_DELAY);
 		});
 
-		this._socket.on('close', (had_error) => {
+		this._socket.on('close', (had_error: any) => {
 			this.state = I.SocketState.closed;
 			super.emit('close', had_error);
 		});
@@ -71,7 +71,7 @@ export class Socket extends EventEmitter {
 		this._socket.on('end', () => {
 			super.emit('end');
 		});
-		this._socket.on('error', (error) => {
+		this._socket.on('error', (error: any) => {
 			super.emit('error', error);
 		});
 	}

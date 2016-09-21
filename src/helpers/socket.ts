@@ -1,4 +1,3 @@
-/// <reference path="../../typings/index.d.ts" />
 
 import B = require('./buffer');
 import T = require('./type');

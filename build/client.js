@@ -1,7 +1,7 @@
-/// <reference path="../typings/index.d.ts" />
+/// <reference path="../node_modules/@types/node/index.d.ts" />
 "use strict";
-const socket_1 = require('./socket');
-const I = require('./interfaces');
+const socket_1 = require("./socket");
+const I = require("./interfaces");
 class Client extends socket_1.Socket {
     constructor(options = {}) {
         super(options);

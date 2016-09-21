@@ -1,4 +1,4 @@
-/// <reference path="../typings/index.d.ts" />
+/// <reference path="../node_modules/@types/node/index.d.ts" />
 
 import {Server, Client, Socket, I} from '../';
 const PORT = 3766;

@@ -6,8 +6,8 @@
     "module": "commonjs",
     "declaration": true,
     "noImplicitAny": true,
-    "noImplicitReturns": true,
     // "noResolve": true,
-    "pretty": true
+    "pretty": true,
+    "noEmitOnError": true
   }
 }

@@ -1,4 +1,3 @@
-/// <reference path="../typings/index.d.ts" />
 "use strict";
 (function (ReceivedDataType) {
     ReceivedDataType[ReceivedDataType["send"] = 0] = "send";
