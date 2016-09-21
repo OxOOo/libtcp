@@ -1,3 +1,4 @@
+/// <reference types="node" />
 export declare function number2Buffer(value: number, length?: number): Buffer;
 export declare function buffer2Number(buffer: Buffer, offset?: number): {
     length: number;

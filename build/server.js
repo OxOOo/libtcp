@@ -1,4 +1,4 @@
-/// <reference path="../node_modules/@types/node/index.d.ts" />
+/// <reference types="node" />
 "use strict";
 const net = require("net");
 const events_1 = require("events");

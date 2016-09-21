@@ -1,4 +1,3 @@
-/// <reference path="../node_modules/@types/node/index.d.ts" />
 import { Socket } from './socket';
 import I = require('./interfaces');
 export declare class Client extends Socket {

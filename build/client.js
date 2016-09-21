@@ -1,4 +1,4 @@
-/// <reference path="../node_modules/@types/node/index.d.ts" />
+/// <reference types="node" />
 "use strict";
 const socket_1 = require("./socket");
 const I = require("./interfaces");

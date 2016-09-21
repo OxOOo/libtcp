@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import B = require('./buffer');
 import I = require('../interfaces');
 export declare var number2Buffer: typeof B.uint642Buffer;

@@ -8,6 +8,10 @@
     "noImplicitAny": true,
     // "noResolve": true,
     "pretty": true,
-    "noEmitOnError": true
+    "noEmitOnError": true,
+    "baseUrl": ".",
+    "paths": {
+      "node": ["node_modules/@types/node/index.d.ts"]
+    }
   }
 }
