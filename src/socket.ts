@@ -1,7 +1,7 @@
 /// <reference types="node" />
 
 import net = require("net");
-import {EventEmitter} from 'events';
+import { EventEmitter } from 'events';
 import I = require('./interfaces');
 import dprocess = require('./dprocess');
 import SH = require('./helpers/socket');
@@ -19,6 +19,7 @@ export class Socket extends EventEmitter {
 	private static _INDEX_MOD = Math.pow(2, 25);
 	private _dprocesses: dprocess.BaseDProcess[] = [];
 	private _time_handle: NodeJS.Timer = null;
+	private _pending_callbacks: { index: number; callback: Function }[] = [];
 
 	constructor(public options: I.Options, protected _socket: net.Socket = null, public id: number = 0) {
 		super();
@@ -112,9 +113,20 @@ export class Socket extends EventEmitter {
 		}
 		return buffer;
 	}
-	private async _sendDataPackage(data_package: I.DataPackage, index: number, callback: Function) {
-		// FIXME
+	private async _sendDataPackage(data_package: I.DataPackage, index: number, callback?: Function) {
+		if (callback) {
+			this._pending_callbacks.push({
+				index: index,
+				callback: callback
+			});
+		}
 		var data_buffer = SH.dataPackage2Buffer(data_package, index);
+		data_buffer = await this._encode(data_buffer);
+		var length_buffer = SH.number2Buffer(data_buffer.length);
+		this._socket.write(Buffer.concat([length_buffer, data_buffer]));
+	}
+	private async _sendAccepted(index: number) {
+		var data_buffer = SH.acceptIndex2Buffer(index);
 		data_buffer = await this._encode(data_buffer);
 		var length_buffer = SH.number2Buffer(data_buffer.length);
 		this._socket.write(Buffer.concat([length_buffer, data_buffer]));
@@ -128,8 +140,13 @@ export class Socket extends EventEmitter {
 		data_buffer = await this._decode(data_buffer);
 		var data_package = SH.buffer2DataPackage(data_buffer);
 		if (data_package.type == I.ReceivedDataType.send) {
+			this._sendAccepted(data_package.index);
 			super.emit(data_package.event, data_package.arg);
 			super.emit(Socket.ALL_DATA_MESSAGE, data_package.event, data_package.arg);
+		} else if (data_package.type == I.ReceivedDataType.accepted) {
+			var callbacks = this._pending_callbacks.filter(e => { return e.index == data_package.index; });
+			callbacks.forEach(e => { e.callback(); });
+			this._pending_callbacks = this._pending_callbacks.filter(e => { return e.index != data_package.index; });
 		} else {
 			throw new Error('Unknow data');
 		}

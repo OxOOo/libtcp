@@ -16,6 +16,7 @@ export declare class Socket extends EventEmitter {
     private static _INDEX_MOD;
     private _dprocesses;
     private _time_handle;
+    private _pending_callbacks;
     constructor(options: I.Options, _socket?: net.Socket, id?: number);
     address(): {
         port: number;
@@ -26,6 +27,7 @@ export declare class Socket extends EventEmitter {
     emit(event: string, arg: any, callback?: Function): boolean;
     private _encode(buffer);
     private _decode(buffer);
-    private _sendDataPackage(data_package, index, callback);
+    private _sendDataPackage(data_package, index, callback?);
+    private _sendAccepted(index);
     private _receive();
 }

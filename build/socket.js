@@ -26,6 +26,7 @@ class Socket extends events_1.EventEmitter {
         this._index = 0; // the index of data packages, will inc when send a data
         this._dprocesses = [];
         this._time_handle = null;
+        this._pending_callbacks = [];
         this._socket = _socket || new net.Socket(); // Socket for network
         if (_socket != null) {
             this.state = I.SocketState.connected;
@@ -113,8 +114,21 @@ class Socket extends events_1.EventEmitter {
     }
     _sendDataPackage(data_package, index, callback) {
         return __awaiter(this, void 0, void 0, function* () {
-            // FIXME
+            if (callback) {
+                this._pending_callbacks.push({
+                    index: index,
+                    callback: callback
+                });
+            }
             var data_buffer = SH.dataPackage2Buffer(data_package, index);
+            data_buffer = yield this._encode(data_buffer);
+            var length_buffer = SH.number2Buffer(data_buffer.length);
+            this._socket.write(Buffer.concat([length_buffer, data_buffer]));
+        });
+    }
+    _sendAccepted(index) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var data_buffer = SH.acceptIndex2Buffer(index);
             data_buffer = yield this._encode(data_buffer);
             var length_buffer = SH.number2Buffer(data_buffer.length);
             this._socket.write(Buffer.concat([length_buffer, data_buffer]));
@@ -131,8 +145,14 @@ class Socket extends events_1.EventEmitter {
             data_buffer = yield this._decode(data_buffer);
             var data_package = SH.buffer2DataPackage(data_buffer);
             if (data_package.type == I.ReceivedDataType.send) {
+                this._sendAccepted(data_package.index);
                 _super("emit").call(this, data_package.event, data_package.arg);
                 _super("emit").call(this, Socket.ALL_DATA_MESSAGE, data_package.event, data_package.arg);
+            }
+            else if (data_package.type == I.ReceivedDataType.accepted) {
+                var callbacks = this._pending_callbacks.filter(e => { return e.index == data_package.index; });
+                callbacks.forEach(e => { e.callback(); });
+                this._pending_callbacks = this._pending_callbacks.filter(e => { return e.index != data_package.index; });
             }
             else {
                 throw new Error('Unknow data');

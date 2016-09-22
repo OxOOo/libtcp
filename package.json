@@ -8,7 +8,7 @@
     "test": "gulp test && node build_test/test.js",
     "build": "gulp tsc",
     "watch": "gulp tsc:w",
-    "clean": "rm -rf build"
+    "clean": "rm -rf build build_test definitions"
   },
   "repository": {
     "type": "git",
