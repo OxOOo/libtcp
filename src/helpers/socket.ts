@@ -120,11 +120,6 @@ var buffer2Arg = function (data_buffer: Buffer, offset: number) {
 	}
 }
 
-enum HEAD {
-	SEND = 1,
-	ACCEPTED = 2
-};
-
 export var number2Buffer = B.uint642Buffer;
 export var buffer2Number = function (buffer: Buffer) {
 	return B.buffer2Number(buffer)
@@ -134,8 +129,12 @@ export var buffer2Number = function (buffer: Buffer) {
 // accepted buffer : HEAD_ACCEPTED number|index Number
 
 /// 将data_package封装为Buffer
-export var dataPackage2Buffer = function (data_package: I.DataPackage, index: number) {
-	var head_buffer = B.uint82Buffer(HEAD.SEND);
+const TYPE_HEADS: I.ReceivedDataType[] = [I.ReceivedDataType.send, I.ReceivedDataType.sendSync, I.ReceivedDataType.syncReply, I.ReceivedDataType.syncError];
+export var dataPackage2Buffer = function (type: I.ReceivedDataType, data_package: I.DataPackage, index: number) {
+	if (TYPE_HEADS.indexOf(type) == -1) {
+		throw new Error('nonsupport type ' + I.ReceivedDataType[type]);
+	}
+	var head_buffer = B.uint82Buffer(type);
 	var index_buffer = B.number2Buffer(index);
 	var event_buffer = B.string2Buffer(data_package.event);
 	var arg_buffer = arg2Buffer(data_package.arg);
@@ -145,7 +144,7 @@ export var dataPackage2Buffer = function (data_package: I.DataPackage, index: nu
 
 /// 将index封装为Buffer
 export var acceptIndex2Buffer = function (index: number) {
-	var head_buffer = B.uint82Buffer(HEAD.ACCEPTED);
+	var head_buffer = B.uint82Buffer(I.ReceivedDataType.accepted);
 	var index_buffer = B.number2Buffer(index);
 	return Buffer.concat([head_buffer, index_buffer]);
 }
@@ -154,20 +153,20 @@ export var acceptIndex2Buffer = function (index: number) {
 export var buffer2DataPackage = function (data_buffer: Buffer, offset = 0): I.ReceivedData {
 	var head_data = B.buffer2Number(data_buffer, offset);
 
-	if (head_data.value == HEAD.SEND) {
-		var index_data = B.buffer2Number(data_buffer, offset + head_data.length);
-		var event_data = B.buffer2String(data_buffer, offset + head_data.length + index_data.length);
-		var arg_data = buffer2Arg(data_buffer, offset + head_data.length + index_data.length + event_data.length);
+	if (TYPE_HEADS.indexOf(head_data.value) != -1) {
+		let index_data = B.buffer2Number(data_buffer, offset + head_data.length);
+		let event_data = B.buffer2String(data_buffer, offset + head_data.length + index_data.length);
+		let arg_data = buffer2Arg(data_buffer, offset + head_data.length + index_data.length + event_data.length);
 		return {
-			type: I.ReceivedDataType.send,
+			type: head_data.value,
 			event: event_data.value,
 			arg: arg_data.value,
 			index: index_data.value,
 			length: head_data.length + index_data.length + event_data.length + arg_data.length
 		}
 
-	} else if (head_data.value == HEAD.ACCEPTED) {
-		var index_data = B.buffer2Number(data_buffer, offset + head_data.length);
+	} else if (head_data.value == I.ReceivedDataType.accepted) {
+		let index_data = B.buffer2Number(data_buffer, offset + head_data.length);
 		return {
 			type: I.ReceivedDataType.accepted,
 			index: index_data.value,

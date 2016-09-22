@@ -12,6 +12,9 @@ export interface DataPackage {
 export declare enum ReceivedDataType {
     send = 0,
     accepted = 1,
+    sendSync = 2,
+    syncReply = 3,
+    syncError = 4,
 }
 export interface ReceivedData {
     type: ReceivedDataType;

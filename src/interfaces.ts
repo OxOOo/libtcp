@@ -16,7 +16,10 @@ export interface DataPackage
 
 export enum ReceivedDataType {
 	send = 0,
-	accepted
+	accepted,
+	sendSync,
+	syncReply,
+	syncError
 }
 
 export interface ReceivedData

@@ -5,16 +5,17 @@ import start_server_client = require('./start_server_client');
 
 async function test() {
   var options = await start_server_client({
-     compress: 'zlib',
-     crypto: [
-       {
-         algorithm: 'AES-256-CBC',
-         secret_key: 'hahaha'
-       }
-     ]
+    //  compress: 'zlib',
+    //  crypto: [
+    //    {
+    //      algorithm: 'AES-256-CBC',
+    //      secret_key: 'hahaha'
+    //    }
+    //  ]
   });
 
   await require('./test_string')(options);
+  await require('./test_sync')(options);
   await require('./test_object')(options);
   await require('./test_number')(options);
   await require('./test_boolean')(options);

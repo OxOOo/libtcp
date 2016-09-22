@@ -2,6 +2,9 @@
 (function (ReceivedDataType) {
     ReceivedDataType[ReceivedDataType["send"] = 0] = "send";
     ReceivedDataType[ReceivedDataType["accepted"] = 1] = "accepted";
+    ReceivedDataType[ReceivedDataType["sendSync"] = 2] = "sendSync";
+    ReceivedDataType[ReceivedDataType["syncReply"] = 3] = "syncReply";
+    ReceivedDataType[ReceivedDataType["syncError"] = 4] = "syncError";
 })(exports.ReceivedDataType || (exports.ReceivedDataType = {}));
 var ReceivedDataType = exports.ReceivedDataType;
 (function (SocketState) {

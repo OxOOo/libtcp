@@ -27,6 +27,7 @@ class Socket extends events_1.EventEmitter {
         this._dprocesses = [];
         this._time_handle = null;
         this._pending_callbacks = [];
+        this._pending_sync_callbacks = [];
         this._socket = _socket || new net.Socket(); // Socket for network
         if (_socket != null) {
             this.state = I.SocketState.connected;
@@ -90,11 +91,44 @@ class Socket extends events_1.EventEmitter {
             throw new Error('Socket state is ' + I.SocketState[this.state]);
         arg = arg || null;
         var index = this._index = (this._index + 1) % Socket._INDEX_MOD;
-        this._sendDataPackage({
+        if (callback) {
+            this._pending_callbacks.push({
+                index: index,
+                callback: callback
+            });
+        }
+        this._sendDataPackage(I.ReceivedDataType.send, {
             event: event,
             arg: arg
-        }, index, callback);
+        }, index);
         return true;
+    }
+    emitSync(event, arg) {
+        arg = arg || null;
+        return new Promise((resolve, reject) => {
+            var index = this._index = (this._index + 1) % Socket._INDEX_MOD;
+            this._pending_sync_callbacks.push({
+                index: index,
+                resolve: resolve,
+                reject: reject
+            });
+            this._sendDataPackage(I.ReceivedDataType.sendSync, {
+                event: event,
+                arg: arg
+            }, index);
+        });
+    }
+    onSync(event, listener) {
+        if (this._getSyncFunction(event)) {
+            throw new Error('can not double listen sync function');
+        }
+        this.on(event + Socket.SYNC_MESSAGE, listener);
+    }
+    _getSyncFunction(event) {
+        var listener = null;
+        if (this.listenerCount(event + Socket.SYNC_MESSAGE) > 0)
+            listener = this.listeners(event + Socket.SYNC_MESSAGE)[0];
+        return listener;
     }
     _encode(buffer) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -112,15 +146,9 @@ class Socket extends events_1.EventEmitter {
             return buffer;
         });
     }
-    _sendDataPackage(data_package, index, callback) {
+    _sendDataPackage(type, data_package, index) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (callback) {
-                this._pending_callbacks.push({
-                    index: index,
-                    callback: callback
-                });
-            }
-            var data_buffer = SH.dataPackage2Buffer(data_package, index);
+            var data_buffer = SH.dataPackage2Buffer(type, data_package, index);
             data_buffer = yield this._encode(data_buffer);
             var length_buffer = SH.number2Buffer(data_buffer.length);
             this._socket.write(Buffer.concat([length_buffer, data_buffer]));
@@ -150,9 +178,43 @@ class Socket extends events_1.EventEmitter {
                 _super("emit").call(this, Socket.ALL_DATA_MESSAGE, data_package.event, data_package.arg);
             }
             else if (data_package.type == I.ReceivedDataType.accepted) {
-                var callbacks = this._pending_callbacks.filter(e => { return e.index == data_package.index; });
+                let callbacks = this._pending_callbacks.filter(e => { return e.index == data_package.index; });
                 callbacks.forEach(e => { e.callback(); });
                 this._pending_callbacks = this._pending_callbacks.filter(e => { return e.index != data_package.index; });
+            }
+            else if (data_package.type == I.ReceivedDataType.sendSync) {
+                let listener = this._getSyncFunction(data_package.event);
+                if (listener == null) {
+                    yield this._sendDataPackage(I.ReceivedDataType.syncError, {
+                        event: data_package.event,
+                        arg: 'there is no sync listener'
+                    }, data_package.index);
+                }
+                else {
+                    try {
+                        let reply = yield listener(data_package.arg);
+                        yield this._sendDataPackage(I.ReceivedDataType.syncReply, {
+                            event: data_package.event,
+                            arg: reply
+                        }, data_package.index);
+                    }
+                    catch (e) {
+                        yield this._sendDataPackage(I.ReceivedDataType.syncError, {
+                            event: data_package.event,
+                            arg: e.toString()
+                        }, data_package.index);
+                    }
+                }
+            }
+            else if (data_package.type == I.ReceivedDataType.syncReply) {
+                let callbacks = this._pending_sync_callbacks.filter(e => { return e.index == data_package.index; });
+                callbacks.forEach(e => { e.resolve(data_package.arg); });
+                this._pending_sync_callbacks = this._pending_sync_callbacks.filter(e => { return e.index != data_package.index; });
+            }
+            else if (data_package.type == I.ReceivedDataType.syncError) {
+                let callbacks = this._pending_sync_callbacks.filter(e => { return e.index == data_package.index; });
+                callbacks.forEach(e => { e.reject(new Error(data_package.arg)); });
+                this._pending_sync_callbacks = this._pending_sync_callbacks.filter(e => { return e.index != data_package.index; });
             }
             else {
                 throw new Error('Unknow data');
@@ -167,4 +229,5 @@ class Socket extends events_1.EventEmitter {
 exports.Socket = Socket;
 Socket.DATA_DELAY = 50;
 Socket.ALL_DATA_MESSAGE = '___receive_data___';
+Socket.SYNC_MESSAGE = '__SYNC__';
 Socket._INDEX_MOD = Math.pow(2, 25);

@@ -8,6 +8,7 @@ export declare class Socket extends EventEmitter {
     id: number;
     static DATA_DELAY: number;
     static ALL_DATA_MESSAGE: string;
+    private static SYNC_MESSAGE;
     locals: Object;
     state: I.SocketState;
     private _pending_data_chunks;
@@ -17,6 +18,7 @@ export declare class Socket extends EventEmitter {
     private _dprocesses;
     private _time_handle;
     private _pending_callbacks;
+    private _pending_sync_callbacks;
     constructor(options: I.Options, _socket?: net.Socket, id?: number);
     address(): {
         port: number;
@@ -24,10 +26,13 @@ export declare class Socket extends EventEmitter {
         address: string;
     };
     close(): void;
-    emit(event: string, arg: any, callback?: Function): boolean;
+    emit(event: string, arg?: any, callback?: Function): boolean;
+    emitSync(event: string, arg?: any): Promise<{}>;
+    onSync(event: string, listener: (arg: any) => Promise<any>): void;
+    private _getSyncFunction(event);
     private _encode(buffer);
     private _decode(buffer);
-    private _sendDataPackage(data_package, index, callback?);
+    private _sendDataPackage(type, data_package, index);
     private _sendAccepted(index);
     private _receive();
 }
