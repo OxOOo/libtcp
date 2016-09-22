@@ -9,7 +9,7 @@ export declare class Socket extends EventEmitter {
     static DATA_DELAY: number;
     static ALL_DATA_MESSAGE: string;
     private static SYNC_MESSAGE;
-    locals: Object;
+    locals: any;
     state: I.SocketState;
     private _pending_data_chunks;
     private _received_data;

@@ -11,7 +11,7 @@ export class Socket extends EventEmitter {
 	public static ALL_DATA_MESSAGE = '___receive_data___';
 	private static SYNC_MESSAGE = '__SYNC__';
 
-	public locals: Object = {};
+	public locals: any = {};
 	public state: I.SocketState = I.SocketState.pending;
 
 	private _pending_data_chunks: Buffer[] = [];

@@ -11,7 +11,6 @@ export declare class Server extends EventEmitter {
     private _sync_callbacks;
     constructor(options?: I.Options);
     listen(address: string, port: number, callback?: Function): void;
-    onSocketSync(event: string, listener: (socket: Socket, arg: any) => Promise<any>): void;
     address(): {
         port: number;
         family: string;
@@ -19,4 +18,5 @@ export declare class Server extends EventEmitter {
     };
     close(callback?: Function): this;
     broadcast(event: string, arg?: any, except?: Socket[] | Socket): void;
+    onSocketSync(event: string, listener: (socket: Socket, arg: any) => Promise<any>): void;
 }
