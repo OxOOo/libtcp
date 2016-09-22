@@ -32,10 +32,8 @@ export class Socket extends EventEmitter {
 		}
 
 		if (this.options.crypto) {
-			this.options.crypto.forEach((crypto) => {
-				let dp = new dprocess.CryptoDProcess(crypto.algorithm, crypto.secret_key);
-				this._dprocesses.push(dp);
-			});
+			let dp = new dprocess.CryptoDProcess(this.options.crypto.algorithm, this.options.crypto.secret_key);
+			this._dprocesses.push(dp);
 		}
 
 		if (options.compress === 'zlib') {

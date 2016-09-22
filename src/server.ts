@@ -52,11 +52,22 @@ export class Server extends EventEmitter {
 		});
 	}
 
-	public listen(address: string, port: number, callback?: Function) {
-		if (callback) {
-			this.once('listening', callback);
-		}
-		this._server.listen(port, address);
+	public listen(address: string, port: number) {
+		return new Promise((resolve, reject) => {
+			let listening = () => {
+				resolve();
+				this._server.removeListener('listening', listening);
+				this._server.removeListener('error', error);
+			}
+			let error = (err: Error) => {
+				reject(err);
+				this._server.removeListener('listening', listening);
+				this._server.removeListener('error', error);
+			}
+			this._server.once('listening', listening);
+			this._server.once('error', error);
+			this._server.listen(port, address);
+		});
 	}
 
 	public address() {

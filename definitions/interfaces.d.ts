@@ -1,9 +1,9 @@
 export interface Options {
     compress?: 'zlib';
-    crypto?: Array<{
+    crypto?: {
         algorithm: string;
         secret_key: string;
-    }>;
+    };
 }
 export interface DataPackage {
     event: string;

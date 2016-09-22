@@ -42,11 +42,22 @@ class Server extends events_1.EventEmitter {
             super.emit('listening');
         });
     }
-    listen(address, port, callback) {
-        if (callback) {
-            this.once('listening', callback);
-        }
-        this._server.listen(port, address);
+    listen(address, port) {
+        return new Promise((resolve, reject) => {
+            let listening = () => {
+                resolve();
+                this._server.removeListener('listening', listening);
+                this._server.removeListener('error', error);
+            };
+            let error = (err) => {
+                reject(err);
+                this._server.removeListener('listening', listening);
+                this._server.removeListener('error', error);
+            };
+            this._server.once('listening', listening);
+            this._server.once('error', error);
+            this._server.listen(port, address);
+        });
     }
     address() {
         return this._server.address();

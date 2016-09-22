@@ -1,6 +1,6 @@
 /// <reference types="node" />
 
-import {Socket} from './socket';
+import { Socket } from './socket';
 import I = require('./interfaces');
 
 export class Client extends Socket {
@@ -8,11 +8,22 @@ export class Client extends Socket {
 		super(options);
 	}
 
-	public connect(address: string, port: number, connectListener?: Function) {
-		this.state = I.SocketState.connecting;
-		if (connectListener) {
-			this.once('connect', connectListener);
-		}
-		this._socket.connect(port, address);
+	public connect(address: string, port: number) {
+		return new Promise((resolve, reject) => {
+			let connect = () => {
+				resolve();
+				this.removeListener('connect', connect);
+				this.removeListener('error', error);
+			}
+			let error = (err: Error) => {
+				reject(err);
+				this.removeListener('connect', connect);
+				this.removeListener('error', error);
+			}
+			this.once('connect', connect);
+			this.once('error', error);
+			this.state = I.SocketState.connecting;
+			this._socket.connect(port, address);
+		});
 	}
 }

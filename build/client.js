@@ -7,12 +7,23 @@ class Client extends socket_1.Socket {
         super(options);
         this.options = options;
     }
-    connect(address, port, connectListener) {
-        this.state = I.SocketState.connecting;
-        if (connectListener) {
-            this.once('connect', connectListener);
-        }
-        this._socket.connect(port, address);
+    connect(address, port) {
+        return new Promise((resolve, reject) => {
+            let connect = () => {
+                resolve();
+                this.removeListener('connect', connect);
+                this.removeListener('error', error);
+            };
+            let error = (err) => {
+                reject(err);
+                this.removeListener('connect', connect);
+                this.removeListener('error', error);
+            };
+            this.once('connect', connect);
+            this.once('error', error);
+            this.state = I.SocketState.connecting;
+            this._socket.connect(port, address);
+        });
     }
 }
 exports.Client = Client;

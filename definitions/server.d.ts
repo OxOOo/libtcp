@@ -10,7 +10,7 @@ export declare class Server extends EventEmitter {
     private _sockets_id;
     private _sync_callbacks;
     constructor(options?: I.Options);
-    listen(address: string, port: number, callback?: Function): void;
+    listen(address: string, port: number): Promise<{}>;
     address(): {
         port: number;
         family: string;
