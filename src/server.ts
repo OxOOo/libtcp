@@ -59,19 +59,6 @@ export class Server extends EventEmitter {
 		this._server.listen(port, address);
 	}
 
-	public onSocketSync(event: string, listener: (socket: Socket, arg: any) => Promise<any>) {
-		this.sockets.forEach((s) => {
-			let socket = s;
-			socket.onSync(event, (arg: any) => {
-				return listener(socket, arg);
-			});
-		});
-		this._sync_callbacks.push({
-			event: event,
-			listener: listener
-		});
-	}
-
 	public address() {
 		return this._server.address();
 	}
@@ -89,6 +76,19 @@ export class Server extends EventEmitter {
 			if (except instanceof Array && except.indexOf(socket) !== -1) return;
 			if (except == socket) return;
 			socket.emit(event, arg);
+		});
+	}
+
+	public onSocketSync(event: string, listener: (socket: Socket, arg: any) => Promise<any>) {
+		this.sockets.forEach((s) => {
+			let socket = s;
+			socket.onSync(event, (arg: any) => {
+				return listener(socket, arg);
+			});
+		});
+		this._sync_callbacks.push({
+			event: event,
+			listener: listener
 		});
 	}
 }
