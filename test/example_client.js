@@ -1,11 +1,11 @@
-var Client = require('../index').Client;
+let Client = require('../index').Client;
 
-var PORT = 3766;
-var options = {
+let PORT = 3766;
+let options = {
   // compress: 'zlib',
 }
 
-var client = new Client(options);
+let client = new Client(options);
 client.connect(PORT, 'localhost', function() {
   console.log('Client Connected');
   client.emit('message', 2);

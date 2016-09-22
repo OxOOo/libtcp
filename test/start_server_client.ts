@@ -7,8 +7,8 @@ export = function (options: I.Options) {
   return new Promise<{server: Server;client: Client;server_socket: Socket;}>(function (resolve, reject) {
     console.log('Start Server and Client');
 
-    var server = new Server(options);
-    var client = new Client(options);
+    let server = new Server(options);
+    let client = new Client(options);
 
     //Start Server
     server.listen("localhost", PORT, function () {
@@ -17,7 +17,7 @@ export = function (options: I.Options) {
 
     server.on('connection', function (socket: Socket) {
       console.log('New Connection');
-      var server_socket = socket;
+      let server_socket = socket;
       resolve({
         server: server,
         client: client,

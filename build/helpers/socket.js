@@ -12,9 +12,9 @@ var TYPE;
 })(TYPE || (TYPE = {}));
 ;
 /// 将参数转化为Buffer
-var arg2Buffer = function (arg) {
-    var type_buffer = null;
-    var arg_buffer = null;
+let arg2Buffer = function (arg) {
+    let type_buffer = null;
+    let arg_buffer = null;
     if (T.isBuffer(arg)) {
         // buffer
         type_buffer = B.uint82Buffer(TYPE.BUFFER);
@@ -29,11 +29,11 @@ var arg2Buffer = function (arg) {
         // object
         // type | property number | property list
         type_buffer = B.uint82Buffer(TYPE.OBJECT);
-        var property_list = [];
+        let property_list = [];
         Object.keys(arg).forEach((key) => {
             if (arg.hasOwnProperty(key)) {
-                var key_buffer = B.string2Buffer(key);
-                var property_buffer = arg2Buffer(arg[key]);
+                let key_buffer = B.string2Buffer(key);
+                let property_buffer = arg2Buffer(arg[key]);
                 if (property_buffer) {
                     property_list.push(key_buffer);
                     property_list.push(property_buffer);
@@ -47,9 +47,9 @@ var arg2Buffer = function (arg) {
         // array
         // type | array number | value list
         type_buffer = B.uint82Buffer(TYPE.ARRAY);
-        var value_list = [];
+        let value_list = [];
         arg.forEach(function (value) {
-            var value_buffer = arg2Buffer(value);
+            let value_buffer = arg2Buffer(value);
             if (value_buffer) {
                 value_list.push(value_buffer);
             }
@@ -59,7 +59,7 @@ var arg2Buffer = function (arg) {
     }
     else {
         // others
-        var serialized_data = JSON.stringify(arg);
+        let serialized_data = JSON.stringify(arg);
         if (!serialized_data)
             return null;
         type_buffer = B.uint82Buffer(TYPE.JSON);
@@ -68,39 +68,39 @@ var arg2Buffer = function (arg) {
     return Buffer.concat([type_buffer, arg_buffer]);
 };
 // 将Buffer转化为参数，要求Buffer一定是完整的
-var buffer2Arg = function (data_buffer, offset) {
-    var type_data = B.buffer2Number(data_buffer, offset);
+let buffer2Arg = function (data_buffer, offset) {
+    let type_data = B.buffer2Number(data_buffer, offset);
     if (!type_data)
         return null;
-    var value = null;
-    var s_offset = offset;
-    var offset = s_offset + type_data.length;
+    let value = null;
+    let s_offset = offset;
+    offset = s_offset + type_data.length;
     if (type_data.value === TYPE.BUFFER) {
-        var buffer_data = B.bufferFromBuffer(data_buffer, offset);
+        let buffer_data = B.bufferFromBuffer(data_buffer, offset);
         value = buffer_data.value;
         offset += buffer_data.length;
     }
     else if (type_data.value === TYPE.STRING) {
-        var string_data = B.buffer2String(data_buffer, offset);
+        let string_data = B.buffer2String(data_buffer, offset);
         value = string_data.value;
         offset += string_data.length;
     }
     else if (type_data.value === TYPE.JSON) {
-        var string_data = B.buffer2String(data_buffer, offset);
+        let string_data = B.buffer2String(data_buffer, offset);
         value = JSON.parse(string_data.value);
         offset += string_data.length;
     }
     else if (type_data.value === TYPE.OBJECT) {
         // object
         // type | property number | property list
-        var property_number_data = B.buffer2Number(data_buffer, offset);
-        var property_number = property_number_data.value;
+        let property_number_data = B.buffer2Number(data_buffer, offset);
+        let property_number = property_number_data.value;
         offset += property_number_data.length;
         value = {};
-        for (var i = 0; i < property_number; i++) {
-            var key_data = B.buffer2String(data_buffer, offset);
+        for (let i = 0; i < property_number; i++) {
+            let key_data = B.buffer2String(data_buffer, offset);
             offset += key_data.length;
-            var property_data = buffer2Arg(data_buffer, offset);
+            let property_data = buffer2Arg(data_buffer, offset);
             offset += property_data.length;
             value[key_data.value] = property_data.value;
         }
@@ -108,12 +108,12 @@ var buffer2Arg = function (data_buffer, offset) {
     else if (type_data.value === TYPE.ARRAY) {
         // array
         // type | array number | value list
-        var array_number_data = B.buffer2Number(data_buffer, offset);
-        var array_number = array_number_data.value;
+        let array_number_data = B.buffer2Number(data_buffer, offset);
+        let array_number = array_number_data.value;
         offset += array_number_data.length;
         value = [];
-        for (var i = 0; i < array_number; i++) {
-            var value_data = buffer2Arg(data_buffer, offset);
+        for (let i = 0; i < array_number; i++) {
+            let value_data = buffer2Arg(data_buffer, offset);
             offset += value_data.length;
             value.push(value_data.value);
         }
@@ -137,23 +137,23 @@ exports.dataPackage2Buffer = function (type, data_package, index) {
     if (TYPE_HEADS.indexOf(type) == -1) {
         throw new Error('nonsupport type ' + I.ReceivedDataType[type]);
     }
-    var head_buffer = B.uint82Buffer(type);
-    var index_buffer = B.number2Buffer(index);
-    var event_buffer = B.string2Buffer(data_package.event);
-    var arg_buffer = arg2Buffer(data_package.arg);
+    let head_buffer = B.uint82Buffer(type);
+    let index_buffer = B.number2Buffer(index);
+    let event_buffer = B.string2Buffer(data_package.event);
+    let arg_buffer = arg2Buffer(data_package.arg);
     if (arg_buffer == null)
         throw new TypeError('illegal arg type : ' + typeof (data_package.arg));
     return Buffer.concat([head_buffer, index_buffer, event_buffer, arg_buffer]);
 };
 /// 将index封装为Buffer
 exports.acceptIndex2Buffer = function (index) {
-    var head_buffer = B.uint82Buffer(I.ReceivedDataType.accepted);
-    var index_buffer = B.number2Buffer(index);
+    let head_buffer = B.uint82Buffer(I.ReceivedDataType.accepted);
+    let index_buffer = B.number2Buffer(index);
     return Buffer.concat([head_buffer, index_buffer]);
 };
 /// 将Buffer转换为data_package，要求Buffer要完整
 exports.buffer2DataPackage = function (data_buffer, offset = 0) {
-    var head_data = B.buffer2Number(data_buffer, offset);
+    let head_data = B.buffer2Number(data_buffer, offset);
     if (TYPE_HEADS.indexOf(head_data.value) != -1) {
         let index_data = B.buffer2Number(data_buffer, offset + head_data.length);
         let event_data = B.buffer2String(data_buffer, offset + head_data.length + index_data.length);

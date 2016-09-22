@@ -1,8 +1,8 @@
 /// <reference types="node" />
 
 import net = require("net");
-import {EventEmitter} from 'events';
-import {Socket} from './socket';
+import { EventEmitter } from 'events';
+import { Socket } from './socket';
 import I = require('./interfaces');
 
 export class Server extends EventEmitter {
@@ -12,17 +12,26 @@ export class Server extends EventEmitter {
 
 	private _server = net.createServer();
 	private _sockets_id = 0;
+	private _sync_callbacks: Array<{
+		event: string;
+		listener: (socket: Socket, arg: any) => Promise<any>;
+	}> = [];
 
 	constructor(public options: I.Options = {}) {
 		super();
 
 		this._server.on('connection', (s: net.Socket) => {
-			var socket = new Socket(this.options, s, ++this._sockets_id);
+			let socket = new Socket(this.options, s, ++this._sockets_id);
 			this.sockets.push(socket);
-			var broadcast = (event: string, arg: any) => {
+			this._sync_callbacks.forEach((c) => {
+				socket.onSync(c.event, (arg: any) => {
+					return c.listener(socket, arg);
+				});
+			});
+			let broadcast = (event: string, arg: any) => {
 				this.socketsEmitter.emit(event, socket, arg);
 			}
-			var remove = () => {
+			let remove = () => {
 				this.sockets.splice(this.sockets.indexOf(socket), 1);
 				this.socketsEmitter.emit('remove', socket);
 			}
@@ -48,6 +57,19 @@ export class Server extends EventEmitter {
 			this.once('listening', callback);
 		}
 		this._server.listen(port, address);
+	}
+
+	public onSocketSync(event: string, listener: (socket: Socket, arg: any) => Promise<any>) {
+		this.sockets.forEach((s) => {
+			let socket = s;
+			socket.onSync(event, (arg: any) => {
+				return listener(socket, arg);
+			});
+		});
+		this._sync_callbacks.push({
+			event: event,
+			listener: listener
+		});
 	}
 
 	public address() {

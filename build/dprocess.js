@@ -37,18 +37,18 @@ class CryptoDProcess {
         this.secret_key = secret_key;
     }
     encode(buffer) {
-        var cipher = crypto.createCipher(this.algorithm, this.secret_key);
+        let cipher = crypto.createCipher(this.algorithm, this.secret_key);
         return new Promise((resolve, reject) => {
-            var cipherChunks = [];
+            let cipherChunks = [];
             cipherChunks.push(cipher.update(buffer));
             cipherChunks.push(cipher.final());
             resolve(Buffer.concat(cipherChunks));
         });
     }
     decode(buffer) {
-        var decipher = crypto.createDecipher(this.algorithm, this.secret_key);
+        let decipher = crypto.createDecipher(this.algorithm, this.secret_key);
         return new Promise((resolve, reject) => {
-            var plainChunks = [];
+            let plainChunks = [];
             plainChunks.push(decipher.update(buffer));
             plainChunks.push(decipher.final());
             resolve(Buffer.concat(plainChunks));

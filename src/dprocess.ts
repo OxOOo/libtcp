@@ -42,18 +42,18 @@ export class CryptoDProcess implements BaseDProcess {
 
 	}
 	encode(buffer: Buffer): Promise<Buffer> {
-		var cipher = crypto.createCipher(this.algorithm, this.secret_key);
+		let cipher = crypto.createCipher(this.algorithm, this.secret_key);
 		return new Promise<Buffer>((resolve, reject) => {
-			var cipherChunks: Buffer[] = [];
+			let cipherChunks: Buffer[] = [];
 			cipherChunks.push(cipher.update(buffer));
 			cipherChunks.push(cipher.final());
 			resolve(Buffer.concat(cipherChunks));
 		});
 	}
 	decode(buffer: Buffer): Promise<Buffer> {
-		var decipher = crypto.createDecipher(this.algorithm, this.secret_key);
+		let decipher = crypto.createDecipher(this.algorithm, this.secret_key);
 		return new Promise<Buffer>((resolve, reject) => {
-			var plainChunks: Buffer[] = [];
+			let plainChunks: Buffer[] = [];
 			plainChunks.push(decipher.update(buffer));
 			plainChunks.push(decipher.final());
 			resolve(Buffer.concat(plainChunks));

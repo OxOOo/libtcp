@@ -4,14 +4,14 @@ import {Server, Client, Socket, I} from '../src';
 import assert = require('assert');
 
 export = function (options: any) {
-  var server: Server = options.server;
-  var server_socket: Socket = options.server_socket;
-  var client: Client = options.client;
-  var utility = require('utility');
+  let server: Server = options.server;
+  let server_socket: Socket = options.server_socket;
+  let client: Client = options.client;
+  let utility = require('utility');
 
   return new Promise(function (resolve, reject) {
     console.log('Test Send Broadcast');
-    var message = require('./test_lib').getRandomBuffer(10);
+    let message = require('./test_lib').getRandomBuffer(10);
 
     console.time('sendBroadcast');
     console.log(message);

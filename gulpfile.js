@@ -1,12 +1,12 @@
-var gulp = require('gulp');
-var ts = require('gulp-typescript');
-var tsProj = ts.createProject('tsconfig.json', {
+let gulp = require('gulp');
+let ts = require('gulp-typescript');
+let tsProj = ts.createProject('tsconfig.json', {
     typescript: require('typescript')
 });
-var merge = require('merge2');
+let merge = require('merge2');
 
 gulp.task('tsc', function () {
-    var tsResult = gulp.src('src/**/*.ts')
+    let tsResult = gulp.src('src/**/*.ts')
         .pipe(ts(tsProj));
 
     return merge([

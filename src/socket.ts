@@ -7,7 +7,7 @@ import dprocess = require('./dprocess');
 import SH = require('./helpers/socket');
 
 export class Socket extends EventEmitter {
-	public static DATA_DELAY = 50;
+	public static DATA_DELAY = 20;
 	public static ALL_DATA_MESSAGE = '___receive_data___';
 	private static SYNC_MESSAGE = '__SYNC__';
 
@@ -33,7 +33,7 @@ export class Socket extends EventEmitter {
 
 		if (this.options.crypto) {
 			this.options.crypto.forEach((crypto) => {
-				var dp = new dprocess.CryptoDProcess(crypto.algorithm, crypto.secret_key);
+				let dp = new dprocess.CryptoDProcess(crypto.algorithm, crypto.secret_key);
 				this._dprocesses.push(dp);
 			});
 		}
@@ -94,7 +94,7 @@ export class Socket extends EventEmitter {
 			throw new Error('Socket state is ' + I.SocketState[this.state]);
 		arg = arg || null;
 
-		var index = this._index = (this._index + 1) % Socket._INDEX_MOD;
+		let index = this._index = (this._index + 1) % Socket._INDEX_MOD;
 		if (callback) {
 			this._pending_callbacks.push({
 				index: index,
@@ -112,7 +112,7 @@ export class Socket extends EventEmitter {
 		arg = arg || null;
 
 		return new Promise((resolve, reject) => {
-			var index = this._index = (this._index + 1) % Socket._INDEX_MOD;
+			let index = this._index = (this._index + 1) % Socket._INDEX_MOD;
 			this._pending_sync_callbacks.push({
 				index: index,
 				resolve: resolve,
@@ -133,43 +133,43 @@ export class Socket extends EventEmitter {
 	}
 
 	private _getSyncFunction(event: string) {
-		var listener: (arg: any) => Promise<any> = null;
+		let listener: (arg: any) => Promise<any> = null;
 		if (this.listenerCount(event + Socket.SYNC_MESSAGE) > 0)
 			listener = <any>this.listeners(event + Socket.SYNC_MESSAGE)[0];
 		return listener;
 	}
 	private async _encode(buffer: Buffer) {
-		for (var i = 0; i < this._dprocesses.length; i++) {
+		for (let i = 0; i < this._dprocesses.length; i++) {
 			buffer = await this._dprocesses[i].encode(buffer);
 		}
 		return buffer;
 	}
 	private async _decode(buffer: Buffer) {
-		for (var i = this._dprocesses.length - 1; i >= 0; i--) {
+		for (let i = this._dprocesses.length - 1; i >= 0; i--) {
 			buffer = await this._dprocesses[i].decode(buffer);
 		}
 		return buffer;
 	}
 	private async _sendDataPackage(type: I.ReceivedDataType, data_package: I.DataPackage, index: number) {
-		var data_buffer = SH.dataPackage2Buffer(type, data_package, index);
+		let data_buffer = SH.dataPackage2Buffer(type, data_package, index);
 		data_buffer = await this._encode(data_buffer);
-		var length_buffer = SH.number2Buffer(data_buffer.length);
+		let length_buffer = SH.number2Buffer(data_buffer.length);
 		this._socket.write(Buffer.concat([length_buffer, data_buffer]));
 	}
 	private async _sendAccepted(index: number) {
-		var data_buffer = SH.acceptIndex2Buffer(index);
+		let data_buffer = SH.acceptIndex2Buffer(index);
 		data_buffer = await this._encode(data_buffer);
-		var length_buffer = SH.number2Buffer(data_buffer.length);
+		let length_buffer = SH.number2Buffer(data_buffer.length);
 		this._socket.write(Buffer.concat([length_buffer, data_buffer]));
 	}
 	private async _receive() {
-		var length_data = SH.buffer2Number(this._received_data);
+		let length_data = SH.buffer2Number(this._received_data);
 		if (length_data == null || this._received_data.length < length_data.length + length_data.value) return;
-		var data_buffer = this._received_data.slice(length_data.length, length_data.length + length_data.value);
+		let data_buffer = this._received_data.slice(length_data.length, length_data.length + length_data.value);
 		this._received_data = this._received_data.slice(length_data.length + length_data.value);
 
 		data_buffer = await this._decode(data_buffer);
-		var data_package = SH.buffer2DataPackage(data_buffer);
+		let data_package = SH.buffer2DataPackage(data_buffer);
 		if (data_package.type == I.ReceivedDataType.send) {
 			this._sendAccepted(data_package.index);
 			super.emit(data_package.event, data_package.arg);

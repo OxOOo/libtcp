@@ -4,7 +4,7 @@ require('./test_lib');
 import start_server_client = require('./start_server_client');
 
 async function test() {
-  var options = await start_server_client({
+  let options = await start_server_client({
     //  compress: 'zlib',
     //  crypto: [
     //    {

@@ -11,13 +11,19 @@ class Server extends events_1.EventEmitter {
         this.socketsEmitter = new events_1.EventEmitter();
         this._server = net.createServer();
         this._sockets_id = 0;
+        this._sync_callbacks = [];
         this._server.on('connection', (s) => {
-            var socket = new socket_1.Socket(this.options, s, ++this._sockets_id);
+            let socket = new socket_1.Socket(this.options, s, ++this._sockets_id);
             this.sockets.push(socket);
-            var broadcast = (event, arg) => {
+            this._sync_callbacks.forEach((c) => {
+                socket.onSync(c.event, (arg) => {
+                    return c.listener(socket, arg);
+                });
+            });
+            let broadcast = (event, arg) => {
                 this.socketsEmitter.emit(event, socket, arg);
             };
-            var remove = () => {
+            let remove = () => {
                 this.sockets.splice(this.sockets.indexOf(socket), 1);
                 this.socketsEmitter.emit('remove', socket);
             };
@@ -41,6 +47,18 @@ class Server extends events_1.EventEmitter {
             this.once('listening', callback);
         }
         this._server.listen(port, address);
+    }
+    onSocketSync(event, listener) {
+        this.sockets.forEach((s) => {
+            let socket = s;
+            socket.onSync(event, (arg) => {
+                return listener(socket, arg);
+            });
+        });
+        this._sync_callbacks.push({
+            event: event,
+            listener: listener
+        });
     }
     address() {
         return this._server.address();

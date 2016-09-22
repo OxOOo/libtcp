@@ -8,8 +8,10 @@ export declare class Server extends EventEmitter {
     socketsEmitter: EventEmitter;
     private _server;
     private _sockets_id;
+    private _sync_callbacks;
     constructor(options?: I.Options);
     listen(address: string, port: number, callback?: Function): void;
+    onSocketSync(event: string, listener: (socket: Socket, arg: any) => Promise<any>): void;
     address(): {
         port: number;
         family: string;

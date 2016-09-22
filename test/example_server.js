@@ -1,11 +1,11 @@
-var Server = require('../index').Server;
+let Server = require('../index').Server;
 
-var PORT = 3766;
-var options = {
+let PORT = 3766;
+let options = {
   // compress: 'zlib',
 }
 
-var server = new Server(options);
+let server = new Server(options);
 server.on('connection', function(socket) {
   console.log('[Server]New Connection');
 
@@ -21,7 +21,7 @@ server.on('connection', function(socket) {
     count: 23
   });
 
-  var buffer = new Buffer(4);
+  let buffer = new Buffer(4);
   buffer.writeUInt32BE(0x1234, 0);
   socket.emit('sendBuffer', buffer);
 

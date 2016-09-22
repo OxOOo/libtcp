@@ -34,7 +34,7 @@ class Socket extends events_1.EventEmitter {
         }
         if (this.options.crypto) {
             this.options.crypto.forEach((crypto) => {
-                var dp = new dprocess.CryptoDProcess(crypto.algorithm, crypto.secret_key);
+                let dp = new dprocess.CryptoDProcess(crypto.algorithm, crypto.secret_key);
                 this._dprocesses.push(dp);
             });
         }
@@ -90,7 +90,7 @@ class Socket extends events_1.EventEmitter {
         if (this.state !== I.SocketState.connected && this.state !== I.SocketState.connecting)
             throw new Error('Socket state is ' + I.SocketState[this.state]);
         arg = arg || null;
-        var index = this._index = (this._index + 1) % Socket._INDEX_MOD;
+        let index = this._index = (this._index + 1) % Socket._INDEX_MOD;
         if (callback) {
             this._pending_callbacks.push({
                 index: index,
@@ -106,7 +106,7 @@ class Socket extends events_1.EventEmitter {
     emitSync(event, arg) {
         arg = arg || null;
         return new Promise((resolve, reject) => {
-            var index = this._index = (this._index + 1) % Socket._INDEX_MOD;
+            let index = this._index = (this._index + 1) % Socket._INDEX_MOD;
             this._pending_sync_callbacks.push({
                 index: index,
                 resolve: resolve,
@@ -125,14 +125,14 @@ class Socket extends events_1.EventEmitter {
         this.on(event + Socket.SYNC_MESSAGE, listener);
     }
     _getSyncFunction(event) {
-        var listener = null;
+        let listener = null;
         if (this.listenerCount(event + Socket.SYNC_MESSAGE) > 0)
             listener = this.listeners(event + Socket.SYNC_MESSAGE)[0];
         return listener;
     }
     _encode(buffer) {
         return __awaiter(this, void 0, void 0, function* () {
-            for (var i = 0; i < this._dprocesses.length; i++) {
+            for (let i = 0; i < this._dprocesses.length; i++) {
                 buffer = yield this._dprocesses[i].encode(buffer);
             }
             return buffer;
@@ -140,7 +140,7 @@ class Socket extends events_1.EventEmitter {
     }
     _decode(buffer) {
         return __awaiter(this, void 0, void 0, function* () {
-            for (var i = this._dprocesses.length - 1; i >= 0; i--) {
+            for (let i = this._dprocesses.length - 1; i >= 0; i--) {
                 buffer = yield this._dprocesses[i].decode(buffer);
             }
             return buffer;
@@ -148,30 +148,30 @@ class Socket extends events_1.EventEmitter {
     }
     _sendDataPackage(type, data_package, index) {
         return __awaiter(this, void 0, void 0, function* () {
-            var data_buffer = SH.dataPackage2Buffer(type, data_package, index);
+            let data_buffer = SH.dataPackage2Buffer(type, data_package, index);
             data_buffer = yield this._encode(data_buffer);
-            var length_buffer = SH.number2Buffer(data_buffer.length);
+            let length_buffer = SH.number2Buffer(data_buffer.length);
             this._socket.write(Buffer.concat([length_buffer, data_buffer]));
         });
     }
     _sendAccepted(index) {
         return __awaiter(this, void 0, void 0, function* () {
-            var data_buffer = SH.acceptIndex2Buffer(index);
+            let data_buffer = SH.acceptIndex2Buffer(index);
             data_buffer = yield this._encode(data_buffer);
-            var length_buffer = SH.number2Buffer(data_buffer.length);
+            let length_buffer = SH.number2Buffer(data_buffer.length);
             this._socket.write(Buffer.concat([length_buffer, data_buffer]));
         });
     }
     _receive() {
         const _super = name => super[name];
         return __awaiter(this, void 0, void 0, function* () {
-            var length_data = SH.buffer2Number(this._received_data);
+            let length_data = SH.buffer2Number(this._received_data);
             if (length_data == null || this._received_data.length < length_data.length + length_data.value)
                 return;
-            var data_buffer = this._received_data.slice(length_data.length, length_data.length + length_data.value);
+            let data_buffer = this._received_data.slice(length_data.length, length_data.length + length_data.value);
             this._received_data = this._received_data.slice(length_data.length + length_data.value);
             data_buffer = yield this._decode(data_buffer);
-            var data_package = SH.buffer2DataPackage(data_buffer);
+            let data_package = SH.buffer2DataPackage(data_buffer);
             if (data_package.type == I.ReceivedDataType.send) {
                 this._sendAccepted(data_package.index);
                 _super("emit").call(this, data_package.event, data_package.arg);
@@ -227,7 +227,7 @@ class Socket extends events_1.EventEmitter {
     }
 }
 exports.Socket = Socket;
-Socket.DATA_DELAY = 50;
+Socket.DATA_DELAY = 20;
 Socket.ALL_DATA_MESSAGE = '___receive_data___';
 Socket.SYNC_MESSAGE = '__SYNC__';
 Socket._INDEX_MOD = Math.pow(2, 25);
