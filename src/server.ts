@@ -16,6 +16,7 @@ export class Server extends EventEmitter {
 		event: string;
 		listener: (socket: Socket, arg: any) => Promise<any>;
 	}> = [];
+	private _pending_event_callbacks: { event: string; resolve: Function; reject: Function; }[] = [];
 
 	constructor(public options: I.Options = {}) {
 		super();
@@ -29,6 +30,13 @@ export class Server extends EventEmitter {
 				});
 			});
 			let broadcast = (event: string, arg: any) => {
+				let callbacks = this._pending_event_callbacks.filter((e) => {
+					return e.event == event;
+				});
+				callbacks.forEach(e => { e.resolve(arg); });
+				this._pending_event_callbacks = this._pending_event_callbacks.filter((e) => {
+					return e.event != event;
+				});
 				this.socketsEmitter.emit(event, socket, arg);
 			}
 			let remove = () => {
@@ -100,6 +108,16 @@ export class Server extends EventEmitter {
 		this._sync_callbacks.push({
 			event: event,
 			listener: listener
+		});
+	}
+
+	public waitForEvent(event: string) {
+		return new Promise<any>((resolve, reject) => {
+			this._pending_event_callbacks.push({
+				event: event,
+				resolve: resolve,
+				reject: reject
+			});
 		});
 	}
 }

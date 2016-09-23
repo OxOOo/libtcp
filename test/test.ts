@@ -27,6 +27,7 @@ async function test() {
 	await require('./test_mix_array')(options);
 	await require('./test_broadcast')(options);
 	await require('./test_callback')(options);
+	await require('./test_wait')(options);
 
 	options.client.close();
 	options.server.close();

@@ -19,6 +19,7 @@ export declare class Socket extends EventEmitter {
     private _time_handle;
     private _pending_callbacks;
     private _pending_sync_callbacks;
+    private _pending_event_callbacks;
     constructor(options: I.Options, _socket?: net.Socket, id?: number);
     address(): {
         port: number;
@@ -29,6 +30,7 @@ export declare class Socket extends EventEmitter {
     emit(event: string, arg?: any, callback?: Function): boolean;
     emitSync(event: string, arg?: any): Promise<any>;
     onSync(event: string, listener: (arg: any) => Promise<any>): void;
+    waitForEvent(event: string): Promise<any>;
     private _getSyncFunction(event);
     private _encode(buffer);
     private _decode(buffer);

@@ -28,6 +28,7 @@ class Socket extends events_1.EventEmitter {
         this._time_handle = null;
         this._pending_callbacks = [];
         this._pending_sync_callbacks = [];
+        this._pending_event_callbacks = [];
         this._socket = _socket || new net.Socket(); // Socket for network
         if (_socket != null) {
             this.state = I.SocketState.connected;
@@ -122,6 +123,15 @@ class Socket extends events_1.EventEmitter {
         }
         this.on(event + Socket.SYNC_MESSAGE, listener);
     }
+    waitForEvent(event) {
+        return new Promise((resolve, reject) => {
+            this._pending_event_callbacks.push({
+                event: event,
+                resolve: resolve,
+                reject: reject
+            });
+        });
+    }
     _getSyncFunction(event) {
         let listener = null;
         if (this.listenerCount(event + Socket.SYNC_MESSAGE) > 0)
@@ -174,6 +184,13 @@ class Socket extends events_1.EventEmitter {
                 this._sendAccepted(data_package.index);
                 _super("emit").call(this, data_package.event, data_package.arg);
                 _super("emit").call(this, Socket.ALL_DATA_MESSAGE, data_package.event, data_package.arg);
+                let callbacks = this._pending_event_callbacks.filter((e) => {
+                    return e.event == data_package.event;
+                });
+                callbacks.forEach(e => { e.resolve(data_package.arg); });
+                this._pending_event_callbacks = this._pending_event_callbacks.filter((e) => {
+                    return e.event != data_package.event;
+                });
             }
             else if (data_package.type == I.ReceivedDataType.accepted) {
                 let callbacks = this._pending_callbacks.filter(e => { return e.index == data_package.index; });

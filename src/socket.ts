@@ -22,6 +22,7 @@ export class Socket extends EventEmitter {
 	private _time_handle: NodeJS.Timer = null;
 	private _pending_callbacks: { index: number; callback: Function }[] = [];
 	private _pending_sync_callbacks: { index: number; resolve: Function; reject: Function }[] = [];
+	private _pending_event_callbacks: { event: string; resolve: Function; reject: Function }[] = [];
 
 	constructor(public options: I.Options, protected _socket: net.Socket = null, public id: number = 0) {
 		super();
@@ -130,6 +131,16 @@ export class Socket extends EventEmitter {
 		this.on(event + Socket.SYNC_MESSAGE, listener);
 	}
 
+	public waitForEvent(event: string) {
+		return new Promise<any>((resolve, reject) => {
+			this._pending_event_callbacks.push({
+				event: event,
+				resolve: resolve,
+				reject: reject
+			});
+		});
+	}
+
 	private _getSyncFunction(event: string) {
 		let listener: (arg: any) => Promise<any> = null;
 		if (this.listenerCount(event + Socket.SYNC_MESSAGE) > 0)
@@ -172,10 +183,19 @@ export class Socket extends EventEmitter {
 			this._sendAccepted(data_package.index);
 			super.emit(data_package.event, data_package.arg);
 			super.emit(Socket.ALL_DATA_MESSAGE, data_package.event, data_package.arg);
+			let callbacks = this._pending_event_callbacks.filter((e) => {
+				return e.event == data_package.event;
+			});
+			callbacks.forEach(e => { e.resolve(data_package.arg); });
+			this._pending_event_callbacks = this._pending_event_callbacks.filter((e) => {
+				return e.event != data_package.event;
+			});
+
 		} else if (data_package.type == I.ReceivedDataType.accepted) {
 			let callbacks = this._pending_callbacks.filter(e => { return e.index == data_package.index; });
 			callbacks.forEach(e => { e.callback(); });
 			this._pending_callbacks = this._pending_callbacks.filter(e => { return e.index != data_package.index; });
+
 		} else if (data_package.type == I.ReceivedDataType.sendSync) {
 			let listener = this._getSyncFunction(data_package.event);
 			if (listener == null) {
@@ -197,14 +217,17 @@ export class Socket extends EventEmitter {
 					}, data_package.index);
 				}
 			}
+
 		} else if (data_package.type == I.ReceivedDataType.syncReply) {
 			let callbacks = this._pending_sync_callbacks.filter(e => { return e.index == data_package.index; });
 			callbacks.forEach(e => { e.resolve(data_package.arg); });
 			this._pending_sync_callbacks = this._pending_sync_callbacks.filter(e => { return e.index != data_package.index; });
+
 		} else if (data_package.type == I.ReceivedDataType.syncError) {
 			let callbacks = this._pending_sync_callbacks.filter(e => { return e.index == data_package.index; });
 			callbacks.forEach(e => { e.reject(new Error(data_package.arg)); });
 			this._pending_sync_callbacks = this._pending_sync_callbacks.filter(e => { return e.index != data_package.index; });
+
 		} else {
 			throw new Error('Unknow data');
 		}

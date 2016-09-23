@@ -12,6 +12,7 @@ class Server extends events_1.EventEmitter {
         this._server = net.createServer();
         this._sockets_id = 0;
         this._sync_callbacks = [];
+        this._pending_event_callbacks = [];
         this._server.on('connection', (s) => {
             let socket = new socket_1.Socket(this.options, s, ++this._sockets_id);
             this.sockets.push(socket);
@@ -21,6 +22,13 @@ class Server extends events_1.EventEmitter {
                 });
             });
             let broadcast = (event, arg) => {
+                let callbacks = this._pending_event_callbacks.filter((e) => {
+                    return e.event == event;
+                });
+                callbacks.forEach(e => { e.resolve(arg); });
+                this._pending_event_callbacks = this._pending_event_callbacks.filter((e) => {
+                    return e.event != event;
+                });
                 this.socketsEmitter.emit(event, socket, arg);
             };
             let remove = () => {
@@ -88,6 +96,15 @@ class Server extends events_1.EventEmitter {
         this._sync_callbacks.push({
             event: event,
             listener: listener
+        });
+    }
+    waitForEvent(event) {
+        return new Promise((resolve, reject) => {
+            this._pending_event_callbacks.push({
+                event: event,
+                resolve: resolve,
+                reject: reject
+            });
         });
     }
 }
