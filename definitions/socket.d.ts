@@ -27,7 +27,7 @@ export declare class Socket extends EventEmitter {
     };
     close(): void;
     emit(event: string, arg?: any, callback?: Function): boolean;
-    emitSync(event: string, arg?: any): Promise<{}>;
+    emitSync(event: string, arg?: any): Promise<any>;
     onSync(event: string, listener: (arg: any) => Promise<any>): void;
     private _getSyncFunction(event);
     private _encode(buffer);

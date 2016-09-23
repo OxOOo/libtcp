@@ -109,7 +109,7 @@ export class Socket extends EventEmitter {
 	public emitSync(event: string, arg?: any) {
 		arg = arg || null;
 
-		return new Promise((resolve, reject) => {
+		return new Promise<any>((resolve, reject) => {
 			let index = this._index = (this._index + 1) % Socket._INDEX_MOD;
 			this._pending_sync_callbacks.push({
 				index: index,
