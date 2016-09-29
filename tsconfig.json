@@ -12,7 +12,12 @@
     "noEmitOnError": true,
     "baseUrl": ".",
     "paths": {
-      "node": ["node_modules/@types/node/index.d.ts"]
+      "node": [
+        "node_modules/@types/node/index.d.ts"
+      ],
+      "mz": [
+        "node_modules/@types/mz/index.d.ts"
+      ]
     }
   }
 }

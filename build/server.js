@@ -13,6 +13,8 @@ class Server extends events_1.EventEmitter {
         this._sockets_id = 0;
         this._sync_callbacks = [];
         this._pending_event_callbacks = [];
+        this._timeouts = [];
+        this._timeouts_handle = null;
         this._server.on('connection', (s) => {
             let socket = new socket_1.Socket(this.options, s, ++this._sockets_id);
             this.sockets.push(socket);
@@ -98,14 +100,44 @@ class Server extends events_1.EventEmitter {
             listener: listener
         });
     }
-    waitForEvent(event) {
+    waitForEvent(event, timeout = 0) {
         return new Promise((resolve, reject) => {
             this._pending_event_callbacks.push({
                 event: event,
                 resolve: resolve,
                 reject: reject
             });
+            if (timeout != 0)
+                this._registerTimeout(event, Date.now() + timeout);
         });
+    }
+    _registerTimeout(event, clock) {
+        this._timeouts.push({
+            event: event,
+            clock: clock
+        });
+        this._buildTimeout();
+    }
+    _buildTimeout() {
+        if (this._timeouts_handle != null) {
+            clearTimeout(this._timeouts_handle);
+            this._timeouts_handle = null;
+        }
+        let now = Date.now();
+        let timeouts = this._timeouts.filter(t => { return t.clock < now; });
+        this._timeouts = this._timeouts.filter(t => { return t.clock >= now; });
+        let events = timeouts.map(t => { return t.event; });
+        let event_callbacks = this._pending_event_callbacks.filter(t => { return events.indexOf(t.event) != -1; });
+        this._pending_event_callbacks = this._pending_event_callbacks.filter(t => { return events.indexOf(t.event) == -1; });
+        event_callbacks.forEach(t => { return t.reject(new Error('timeout')); });
+        let clock = 0;
+        this._timeouts.forEach(t => {
+            if (clock == 0 || clock > t.clock)
+                clock = t.clock;
+        });
+        if (clock != 0) {
+            this._timeouts_handle = setTimeout(() => { this._buildTimeout(); }, clock - Date.now() + 5);
+        }
     }
 }
 exports.Server = Server;

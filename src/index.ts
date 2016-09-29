@@ -6,7 +6,7 @@ export {
 	I
 }
 
-import {Server} from './server';
-import {Client} from './client';
-import {Socket} from './socket';
+import { Server } from './server';
+import { Client } from './client';
+import { Socket } from './socket';
 import I = require('./interfaces');

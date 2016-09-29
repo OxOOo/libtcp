@@ -17,6 +17,8 @@ export class Server extends EventEmitter {
 		listener: (socket: Socket, arg: any) => Promise<any>;
 	}> = [];
 	private _pending_event_callbacks: { event: string; resolve: Function; reject: Function; }[] = [];
+	private _timeouts: { event: string; clock: number; }[] = [];
+	private _timeouts_handle: NodeJS.Timer = null;
 
 	constructor(public options: I.Options = {}) {
 		super();
@@ -111,13 +113,45 @@ export class Server extends EventEmitter {
 		});
 	}
 
-	public waitForEvent(event: string) {
+	public waitForEvent(event: string, timeout: number = 0) {
 		return new Promise<any>((resolve, reject) => {
 			this._pending_event_callbacks.push({
 				event: event,
 				resolve: resolve,
 				reject: reject
 			});
+			if (timeout != 0) this._registerTimeout(event, Date.now() + timeout);
 		});
+	}
+
+	private _registerTimeout(event: string, clock: number) {
+		this._timeouts.push({
+			event: event,
+			clock: clock
+		});
+		this._buildTimeout();
+	}
+	private _buildTimeout() {
+		if (this._timeouts_handle != null) {
+			clearTimeout(this._timeouts_handle);
+			this._timeouts_handle = null;
+		}
+		let now = Date.now();
+		let timeouts = this._timeouts.filter(t => { return t.clock < now; });
+		this._timeouts = this._timeouts.filter(t => { return t.clock >= now; });
+
+		let events = timeouts.map(t => { return t.event; });
+		let event_callbacks = this._pending_event_callbacks.filter(t => { return events.indexOf(t.event) != -1 });
+		this._pending_event_callbacks = this._pending_event_callbacks.filter(t => { return events.indexOf(t.event) == -1 });
+		event_callbacks.forEach(t => { return t.reject(new Error('timeout')); });
+
+		let clock = 0;
+		this._timeouts.forEach(t => {
+			if (clock == 0 || clock > t.clock)
+				clock = t.clock;
+		});
+		if (clock != 0) {
+			this._timeouts_handle = setTimeout(() => { this._buildTimeout(); }, clock - Date.now() + 5);
+		}
 	}
 }

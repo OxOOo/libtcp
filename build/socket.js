@@ -29,6 +29,8 @@ class Socket extends events_1.EventEmitter {
         this._pending_callbacks = [];
         this._pending_sync_callbacks = [];
         this._pending_event_callbacks = [];
+        this._timeouts = [];
+        this._timeouts_handle = null;
         this._socket = _socket || new net.Socket(); // Socket for network
         if (_socket != null) {
             this.state = I.SocketState.connected;
@@ -88,7 +90,6 @@ class Socket extends events_1.EventEmitter {
     emit(event, arg, callback) {
         if (this.state !== I.SocketState.connected && this.state !== I.SocketState.connecting)
             throw new Error('Socket state is ' + I.SocketState[this.state]);
-        arg = arg || null;
         let index = this._index = (this._index + 1) % Socket._INDEX_MOD;
         if (callback) {
             this._pending_callbacks.push({
@@ -102,8 +103,7 @@ class Socket extends events_1.EventEmitter {
         }, index);
         return true;
     }
-    emitSync(event, arg) {
-        arg = arg || null;
+    emitSync(event, arg, timeout = 0) {
         return new Promise((resolve, reject) => {
             let index = this._index = (this._index + 1) % Socket._INDEX_MOD;
             this._pending_sync_callbacks.push({
@@ -111,10 +111,18 @@ class Socket extends events_1.EventEmitter {
                 resolve: resolve,
                 reject: reject
             });
-            this._sendDataPackage(I.ReceivedDataType.sendSync, {
-                event: event,
-                arg: arg
-            }, index);
+            try {
+                this._sendDataPackage(I.ReceivedDataType.sendSync, {
+                    event: event,
+                    arg: arg
+                }, index);
+                if (timeout)
+                    this._registerTimeout(index, timeout + Date.now());
+            }
+            catch (e) {
+                this._pending_sync_callbacks = this._pending_sync_callbacks.filter(c => { return c.index != index; });
+                reject(e);
+            }
         });
     }
     onSync(event, listener) {
@@ -123,14 +131,49 @@ class Socket extends events_1.EventEmitter {
         }
         this.on(event + Socket.SYNC_MESSAGE, listener);
     }
-    waitForEvent(event) {
+    waitForEvent(event, timeout = 0) {
         return new Promise((resolve, reject) => {
+            let index = this._index = (this._index + 1) % Socket._INDEX_MOD;
             this._pending_event_callbacks.push({
+                index: index,
                 event: event,
                 resolve: resolve,
                 reject: reject
             });
+            if (timeout)
+                this._registerTimeout(index, timeout + Date.now());
         });
+    }
+    _registerTimeout(index, clock) {
+        this._timeouts.push({
+            index: index,
+            clock: clock
+        });
+        this._buildTimeout();
+    }
+    _buildTimeout() {
+        if (this._timeouts_handle != null) {
+            clearTimeout(this._timeouts_handle);
+            this._timeouts_handle = null;
+        }
+        let now = Date.now();
+        let timeouts = this._timeouts.filter(t => { return t.clock < now; });
+        this._timeouts = this._timeouts.filter(t => { return t.clock >= now; });
+        let indexes = timeouts.map(t => { return t.index; });
+        let sync_callbacks = this._pending_sync_callbacks.filter(t => { return indexes.indexOf(t.index) != -1; });
+        let event_callbacks = this._pending_event_callbacks.filter(t => { return indexes.indexOf(t.index) != -1; });
+        this._pending_sync_callbacks = this._pending_sync_callbacks.filter(t => { return indexes.indexOf(t.index) == -1; });
+        this._pending_event_callbacks = this._pending_event_callbacks.filter(t => { return indexes.indexOf(t.index) == -1; });
+        sync_callbacks.forEach(t => { return t.reject(new Error('timeout')); });
+        event_callbacks.forEach(t => { return t.reject(new Error('timeout')); });
+        let clock = 0;
+        this._timeouts.forEach(t => {
+            if (clock == 0 || clock > t.clock)
+                clock = t.clock;
+        });
+        if (clock != 0) {
+            this._timeouts_handle = setTimeout(() => { this._buildTimeout(); }, clock - Date.now() + 5);
+        }
     }
     _getSyncFunction(event) {
         let listener = null;
@@ -156,6 +199,7 @@ class Socket extends events_1.EventEmitter {
     }
     _sendDataPackage(type, data_package, index) {
         return __awaiter(this, void 0, void 0, function* () {
+            data_package.arg = data_package.arg || null;
             let data_buffer = SH.dataPackage2Buffer(type, data_package, index);
             data_buffer = yield this._encode(data_buffer);
             let length_buffer = SH.number2Buffer(data_buffer.length);

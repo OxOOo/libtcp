@@ -23,7 +23,11 @@ export class Client extends Socket {
 			this.once('connect', connect);
 			this.once('error', error);
 			this.state = I.SocketState.connecting;
-			this._socket.connect(port, address);
+			try {
+				this._socket.connect(port, address);
+			} catch (e) {
+				reject(e);
+			}
 		});
 	}
 }

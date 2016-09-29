@@ -28,6 +28,7 @@ async function test() {
 	await require('./test_broadcast')(options);
 	await require('./test_callback')(options);
 	await require('./test_wait')(options);
+	await require('./test_timeout')(options);
 
 	options.client.close();
 	options.server.close();

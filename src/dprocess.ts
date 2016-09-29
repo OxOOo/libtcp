@@ -1,6 +1,7 @@
 /// <reference types="node" />
+/// <reference types="mz" />
 
-import zlib = require('zlib');
+import mzzlib = require('mz/zlib');
 import crypto = require('crypto');
 
 export interface BaseDProcess {
@@ -12,27 +13,11 @@ export class ZlibDProcess implements BaseDProcess {
 	constructor() {
 
 	}
-	encode(buffer: Buffer): Promise<Buffer> {
-		return new Promise<Buffer>((resolve, reject) => {
-			zlib.deflate(buffer, (err, compressed) => {
-				if (!err) {
-					resolve(compressed);
-				} else {
-					reject(err);
-				}
-			});
-		});
+	async encode(buffer: Buffer) {
+		return <Buffer>await mzzlib.deflate(buffer);
 	}
-	decode(buffer: Buffer): Promise<Buffer> {
-		return new Promise<Buffer>((resolve, reject) => {
-			zlib.unzip(buffer, (err, nocompress) => {
-				if (!err) {
-					resolve(nocompress);
-				} else {
-					reject(err);
-				}
-			});
-		});
+	async decode(buffer: Buffer): Promise<Buffer> {
+		return <Buffer>await mzzlib.unzip(buffer);
 	}
 }
 
@@ -41,22 +26,18 @@ export class CryptoDProcess implements BaseDProcess {
 	constructor(private algorithm: string, private secret_key: string) {
 
 	}
-	encode(buffer: Buffer): Promise<Buffer> {
+	async encode(buffer: Buffer) {
 		let cipher = crypto.createCipher(this.algorithm, this.secret_key);
-		return new Promise<Buffer>((resolve, reject) => {
-			let cipherChunks: Buffer[] = [];
-			cipherChunks.push(cipher.update(buffer));
-			cipherChunks.push(cipher.final());
-			resolve(Buffer.concat(cipherChunks));
-		});
+		let cipherChunks: Buffer[] = [];
+		cipherChunks.push(cipher.update(buffer));
+		cipherChunks.push(cipher.final());
+		return Buffer.concat(cipherChunks);
 	}
-	decode(buffer: Buffer): Promise<Buffer> {
+	async decode(buffer: Buffer) {
 		let decipher = crypto.createDecipher(this.algorithm, this.secret_key);
-		return new Promise<Buffer>((resolve, reject) => {
-			let plainChunks: Buffer[] = [];
-			plainChunks.push(decipher.update(buffer));
-			plainChunks.push(decipher.final());
-			resolve(Buffer.concat(plainChunks));
-		});
+		let plainChunks: Buffer[] = [];
+		plainChunks.push(decipher.update(buffer));
+		plainChunks.push(decipher.final());
+		return Buffer.concat(plainChunks);
 	}
 }

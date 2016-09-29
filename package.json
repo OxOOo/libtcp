@@ -27,6 +27,8 @@
     "utility": "^1.8.0"
   },
   "dependencies": {
-    "@types/node": "^6.0.39"
+    "@types/mz": "0.0.29",
+    "@types/node": "^6.0.39",
+    "mz": "^2.4.0"
   }
 }
