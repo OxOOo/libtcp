@@ -7,6 +7,7 @@
   "scripts": {
     "test": "gulp test && node build_test/test.js",
     "build": "gulp tsc",
+    "example": "gulp example",
     "watch": "gulp tsc:w",
     "clean": "rm -rf build build_test definitions"
   },

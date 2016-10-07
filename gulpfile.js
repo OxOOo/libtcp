@@ -24,3 +24,10 @@ gulp.task('test', function () {
         .pipe(ts(tsProj))
         .pipe(gulp.dest('build_test'));
 });
+
+gulp.task('example', function () {
+    let tsResult = gulp.src('example/*.ts')
+        .pipe(ts(tsProj));
+
+    return tsResult.js.pipe(gulp.dest('build_example'));
+});

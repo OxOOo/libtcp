@@ -104,6 +104,8 @@ class Socket extends events_1.EventEmitter {
         return true;
     }
     emitSync(event, arg, timeout = 0) {
+        if (this.state !== I.SocketState.connected && this.state !== I.SocketState.connecting)
+            throw new Error('Socket state is ' + I.SocketState[this.state]);
         return new Promise((resolve, reject) => {
             let index = this._index = (this._index + 1) % Socket._INDEX_MOD;
             this._pending_sync_callbacks.push({
@@ -225,7 +227,7 @@ class Socket extends events_1.EventEmitter {
             data_buffer = yield this._decode(data_buffer);
             let data_package = SH.buffer2DataPackage(data_buffer);
             if (data_package.type == I.ReceivedDataType.send) {
-                this._sendAccepted(data_package.index);
+                yield this._sendAccepted(data_package.index);
                 _super("emit").call(this, data_package.event, data_package.arg);
                 _super("emit").call(this, Socket.ALL_DATA_MESSAGE, data_package.event, data_package.arg);
                 let callbacks = this._pending_event_callbacks.filter((e) => {
